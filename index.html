@@ -1,0 +1,2352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mission 33 — The Expedition</title>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+:root{
+  --bg:#05070a;
+  --bg2:#090d12;
+  --panel:rgba(14,20,27,.72);
+  --line:rgba(255,255,255,.10);
+  --white:#f4f7f8;
+  --muted:#84909b;
+  --cyan:#65e7ff;
+  --cyan2:#1aa8c8;
+  --gold:#e7b76a;
+  --green:#8fd694;
+  --danger:#ff756f;
+  --shadow:0 25px 90px rgba(0,0,0,.55);
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+
+html{scroll-behavior:smooth}
+
+body{
+  background:var(--bg);
+  color:var(--white);
+  font-family:Manrope,sans-serif;
+  overflow-x:hidden;
+}
+
+body.locked{overflow:hidden}
+
+a{text-decoration:none;color:inherit}
+
+button{
+  font:inherit;
+  cursor:pointer;
+  border:0;
+}
+
+::selection{
+  background:var(--cyan);
+  color:#031016;
+}
+
+/* ---------- INTRO ---------- */
+
+#intro{
+  position:fixed;
+  inset:0;
+  z-index:9999;
+  background:#030507;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  transition:opacity 1s ease,visibility 1s ease;
+}
+
+#intro.hide{
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+}
+
+.intro-grid{
+  position:absolute;
+  inset:0;
+  background-image:
+    linear-gradient(rgba(101,231,255,.035) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(101,231,255,.035) 1px,transparent 1px);
+  background-size:55px 55px;
+  mask-image:linear-gradient(to bottom,transparent,#000 20%,#000 80%,transparent);
+}
+
+.intro-content{
+  position:relative;
+  z-index:2;
+  text-align:center;
+  width:min(850px,92%);
+}
+
+.eyebrow{
+  font:500 11px/1 DM Mono,monospace;
+  letter-spacing:.28em;
+  color:var(--cyan);
+  text-transform:uppercase;
+  margin-bottom:24px;
+}
+
+.intro-content h1{
+  font-family:"Space Grotesk",sans-serif;
+  font-size:clamp(52px,10vw,125px);
+  line-height:.86;
+  letter-spacing:-.07em;
+  text-transform:uppercase;
+}
+
+.intro-content h1 span{
+  display:block;
+  color:transparent;
+  -webkit-text-stroke:1px rgba(255,255,255,.75);
+}
+
+.intro-sub{
+  margin:30px auto 38px;
+  color:#8c98a4;
+  max-width:580px;
+  font-size:14px;
+  line-height:1.9;
+}
+
+.begin-btn{
+  display:inline-flex;
+  align-items:center;
+  gap:16px;
+  padding:16px 24px;
+  border:1px solid rgba(101,231,255,.35);
+  background:rgba(101,231,255,.06);
+  color:var(--white);
+  letter-spacing:.15em;
+  font:500 11px DM Mono,monospace;
+  text-transform:uppercase;
+  transition:.3s;
+}
+
+.begin-btn:hover{
+  background:var(--cyan);
+  color:#031016;
+  transform:translateY(-3px);
+  box-shadow:0 15px 45px rgba(101,231,255,.18);
+}
+
+.compass{
+  position:absolute;
+  width:420px;
+  height:420px;
+  border:1px solid rgba(101,231,255,.08);
+  border-radius:50%;
+  animation:spin 40s linear infinite;
+}
+
+.compass:before,
+.compass:after{
+  content:"";
+  position:absolute;
+  inset:35px;
+  border:1px dashed rgba(101,231,255,.12);
+  border-radius:50%;
+}
+
+.compass:after{
+  inset:100px;
+  border-style:solid;
+  border-color:rgba(255,255,255,.04);
+}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ---------- CANVAS ---------- */
+
+#particles{
+  position:fixed;
+  inset:0;
+  z-index:-1;
+  pointer-events:none;
+  opacity:.7;
+}
+
+/* ---------- NAV ---------- */
+
+.nav{
+  position:fixed;
+  top:0;
+  left:0;
+  right:0;
+  z-index:100;
+  padding:18px 5%;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  background:linear-gradient(to bottom,rgba(5,7,10,.9),transparent);
+  backdrop-filter:blur(5px);
+}
+
+.brand{
+  font:500 12px DM Mono,monospace;
+  letter-spacing:.18em;
+}
+
+.brand span{color:var(--cyan)}
+
+.nav-right{
+  display:flex;
+  align-items:center;
+  gap:20px;
+}
+
+.status{
+  font:10px DM Mono,monospace;
+  color:#6d7882;
+}
+
+.status i{
+  width:7px;
+  height:7px;
+  display:inline-block;
+  border-radius:50%;
+  background:var(--green);
+  box-shadow:0 0 12px var(--green);
+  margin-right:7px;
+}
+
+.sound-btn{
+  width:34px;
+  height:34px;
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.03);
+  color:white;
+  border-radius:50%;
+}
+
+/* ---------- GENERAL ---------- */
+
+section{
+  position:relative;
+  padding:130px 6%;
+}
+
+.container{
+  max-width:1250px;
+  margin:auto;
+}
+
+.section-label{
+  font:500 10px DM Mono,monospace;
+  color:var(--cyan);
+  letter-spacing:.25em;
+  text-transform:uppercase;
+  margin-bottom:18px;
+}
+
+.section-title{
+  font-family:"Space Grotesk",sans-serif;
+  font-size:clamp(36px,6vw,78px);
+  letter-spacing:-.06em;
+  line-height:.95;
+}
+
+.section-title em{
+  color:transparent;
+  -webkit-text-stroke:1px rgba(255,255,255,.45);
+  font-style:normal;
+}
+
+/* ---------- HERO ---------- */
+
+.hero{
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  padding-top:140px;
+}
+
+.hero-layout{
+  display:grid;
+  grid-template-columns:1.4fr .6fr;
+  gap:60px;
+  align-items:end;
+}
+
+.hero h2{
+  font-family:"Space Grotesk",sans-serif;
+  font-size:clamp(64px,12vw,160px);
+  letter-spacing:-.085em;
+  line-height:.78;
+  text-transform:uppercase;
+  max-width:900px;
+}
+
+.hero h2 .outline{
+  color:transparent;
+  -webkit-text-stroke:1px rgba(255,255,255,.65);
+}
+
+.hero-description{
+  margin-top:40px;
+  max-width:560px;
+  color:var(--muted);
+  line-height:1.9;
+  font-size:14px;
+}
+
+.hero-side{
+  border-left:1px solid var(--line);
+  padding-left:30px;
+}
+
+.big-number{
+  font-family:"Space Grotesk";
+  font-size:110px;
+  line-height:.8;
+  letter-spacing:-.08em;
+}
+
+.big-number small{
+  display:block;
+  margin-top:16px;
+  font:10px DM Mono,monospace;
+  color:var(--muted);
+  letter-spacing:.2em;
+}
+
+/* ---------- STATS ---------- */
+
+.stats{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  border-top:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+}
+
+.stat{
+  padding:35px 25px;
+  border-right:1px solid var(--line);
+}
+
+.stat:last-child{border-right:0}
+
+.stat-value{
+  font:600 clamp(30px,4vw,55px) "Space Grotesk";
+  letter-spacing:-.05em;
+}
+
+.stat-label{
+  margin-top:8px;
+  color:var(--muted);
+  font:10px DM Mono,monospace;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+
+/* ---------- TIMELINE ---------- */
+
+.timeline-wrap{
+  margin-top:80px;
+  position:relative;
+}
+
+.timeline-line{
+  position:absolute;
+  left:18px;
+  top:0;
+  bottom:0;
+  width:1px;
+  background:linear-gradient(var(--cyan),rgba(101,231,255,.05));
+}
+
+.timeline-item{
+  position:relative;
+  padding:0 0 70px 70px;
+}
+
+.timeline-dot{
+  position:absolute;
+  left:10px;
+  top:3px;
+  width:17px;
+  height:17px;
+  border-radius:50%;
+  background:#071017;
+  border:1px solid var(--cyan);
+  box-shadow:0 0 20px rgba(101,231,255,.2);
+}
+
+.timeline-date{
+  font:10px DM Mono,monospace;
+  color:var(--cyan);
+  letter-spacing:.15em;
+  margin-bottom:10px;
+}
+
+.timeline-card{
+  background:linear-gradient(120deg,rgba(255,255,255,.045),rgba(255,255,255,.015));
+  border:1px solid var(--line);
+  padding:28px;
+  border-radius:4px;
+}
+
+.timeline-card h3{
+  font-family:"Space Grotesk";
+  font-size:25px;
+  margin-bottom:10px;
+}
+
+.timeline-card p{
+  color:var(--muted);
+  line-height:1.8;
+  font-size:13px;
+}
+
+.logo-row{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+  margin-top:20px;
+}
+
+.logo-box{
+  min-width:90px;
+  height:52px;
+  padding:10px 15px;
+  border:1px solid var(--line);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#65717b;
+  font:9px DM Mono,monospace;
+  background:rgba(0,0,0,.2);
+}
+
+.logo-box img{
+  max-width:90px;
+  max-height:30px;
+  object-fit:contain;
+}
+
+/* ---------- CHAPTERS ---------- */
+
+.chapter-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:end;
+  gap:30px;
+  margin-bottom:60px;
+}
+
+.progress-wrap{
+  width:260px;
+}
+
+.progress-text{
+  display:flex;
+  justify-content:space-between;
+  font:10px DM Mono,monospace;
+  color:var(--muted);
+  margin-bottom:10px;
+}
+
+.progress{
+  height:2px;
+  background:rgba(255,255,255,.08);
+}
+
+.progress-fill{
+  height:100%;
+  width:0%;
+  background:var(--cyan);
+  box-shadow:0 0 15px rgba(101,231,255,.6);
+  transition:1s;
+}
+
+.chapter-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+}
+
+.chapter-card{
+  position:relative;
+  min-height:210px;
+  padding:25px;
+  background:rgba(255,255,255,.025);
+  border:1px solid var(--line);
+  overflow:hidden;
+  cursor:pointer;
+  transition:.35s;
+}
+
+.chapter-card:before{
+  content:"";
+  position:absolute;
+  width:150px;
+  height:150px;
+  right:-80px;
+  bottom:-80px;
+  border-radius:50%;
+  background:rgba(101,231,255,.06);
+  transition:.4s;
+}
+
+.chapter-card:hover{
+  transform:translateY(-5px);
+  border-color:rgba(101,231,255,.35);
+  background:rgba(101,231,255,.035);
+}
+
+.chapter-card:hover:before{
+  transform:scale(2);
+}
+
+.chapter-number{
+  font:10px DM Mono,monospace;
+  color:var(--cyan);
+}
+
+.chapter-card h3{
+  margin-top:55px;
+  font:600 22px "Space Grotesk";
+  letter-spacing:-.03em;
+}
+
+.chapter-card p{
+  margin-top:8px;
+  color:#65717b;
+  font-size:11px;
+}
+
+.lock{
+  position:absolute;
+  right:22px;
+  top:22px;
+  font-size:12px;
+  opacity:.55;
+}
+
+.chapter-card.read{
+  border-color:rgba(143,214,148,.22);
+}
+
+.chapter-card.read .lock{
+  color:var(--green);
+  opacity:1;
+}
+
+/* ---------- PERSONALITY ---------- */
+
+.personality-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:70px;
+  margin-top:70px;
+}
+
+.personality-copy{
+  color:var(--muted);
+  line-height:2;
+  font-size:14px;
+}
+
+.traits{
+  display:flex;
+  flex-direction:column;
+  gap:22px;
+}
+
+.trait-head{
+  display:flex;
+  justify-content:space-between;
+  font:10px DM Mono,monospace;
+  margin-bottom:9px;
+  color:#aab3ba;
+}
+
+.trait-track{
+  height:3px;
+  background:rgba(255,255,255,.07);
+}
+
+.trait-fill{
+  height:100%;
+  width:var(--width);
+  background:linear-gradient(90deg,var(--cyan2),var(--cyan));
+  box-shadow:0 0 15px rgba(101,231,255,.25);
+}
+
+/* ---------- MAP ---------- */
+
+.map{
+  margin-top:70px;
+  min-height:420px;
+  border:1px solid var(--line);
+  position:relative;
+  overflow:hidden;
+  background:
+    linear-gradient(rgba(101,231,255,.035) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(101,231,255,.035) 1px,transparent 1px);
+  background-size:45px 45px;
+}
+
+.map:before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:radial-gradient(circle at 50% 50%,rgba(101,231,255,.08),transparent 55%);
+}
+
+.route{
+  position:absolute;
+  left:8%;
+  right:8%;
+  top:50%;
+  height:1px;
+  background:linear-gradient(90deg,transparent,var(--cyan),transparent);
+}
+
+.map-point{
+  position:absolute;
+  width:12px;
+  height:12px;
+  border:1px solid var(--cyan);
+  border-radius:50%;
+  background:#05070a;
+  box-shadow:0 0 18px rgba(101,231,255,.5);
+}
+
+.map-point span{
+  position:absolute;
+  top:20px;
+  left:50%;
+  transform:translateX(-50%);
+  white-space:nowrap;
+  font:9px DM Mono,monospace;
+  color:#77838c;
+}
+
+.p1{left:10%;top:48%}
+.p2{left:31%;top:33%}
+.p3{left:52%;top:61%}
+.p4{left:72%;top:30%}
+.p5{left:91%;top:50%}
+
+/* ---------- FINAL ---------- */
+
+.final{
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  overflow:hidden;
+}
+
+.final-content{
+  max-width:1000px;
+  position:relative;
+}
+
+.final-kicker{
+  font:10px DM Mono,monospace;
+  color:var(--cyan);
+  letter-spacing:.3em;
+  margin-bottom:25px;
+}
+
+.final h2{
+  font-family:"Space Grotesk";
+  font-size:clamp(55px,11vw,145px);
+  line-height:.78;
+  letter-spacing:-.09em;
+  text-transform:uppercase;
+}
+
+.final h2 span{
+  color:transparent;
+  -webkit-text-stroke:1px rgba(255,255,255,.6);
+}
+
+.final-message{
+  margin:50px auto 0;
+  max-width:720px;
+  color:#9aa4ac;
+  line-height:2;
+  font-size:14px;
+}
+
+.final-message strong{color:white}
+
+.mission{
+  margin-top:60px;
+  border:1px solid var(--line);
+  padding:25px;
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  background:rgba(255,255,255,.025);
+}
+
+.mission div{
+  padding:8px;
+  border-right:1px solid var(--line);
+}
+
+.mission div:last-child{border:0}
+
+.mission small{
+  display:block;
+  color:#68747d;
+  font:8px DM Mono,monospace;
+  letter-spacing:.15em;
+  margin-bottom:7px;
+}
+
+.mission b{
+  font:11px DM Mono,monospace;
+}
+
+.final-birthday{
+  margin-top:55px;
+  font:600 15px DM Mono,monospace;
+  letter-spacing:.18em;
+  color:var(--cyan);
+}
+
+/* ---------- MODAL ---------- */
+
+.modal{
+  position:fixed;
+  inset:0;
+  z-index:500;
+  background:rgba(0,0,0,.78);
+  backdrop-filter:blur(18px);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  opacity:0;
+  visibility:hidden;
+  transition:.35s;
+}
+
+.modal.open{
+  opacity:1;
+  visibility:visible;
+}
+
+.modal-box{
+  width:min(760px,100%);
+  max-height:85vh;
+  overflow:auto;
+  background:#090d12;
+  border:1px solid rgba(101,231,255,.22);
+  padding:clamp(28px,5vw,60px);
+  position:relative;
+  box-shadow:var(--shadow);
+  transform:translateY(25px);
+  transition:.4s;
+}
+
+.modal.open .modal-box{transform:translateY(0)}
+
+.modal-close{
+  position:absolute;
+  top:20px;
+  right:20px;
+  width:35px;
+  height:35px;
+  background:rgba(255,255,255,.05);
+  color:white;
+  border:1px solid var(--line);
+}
+
+.modal-number{
+  color:var(--cyan);
+  font:10px DM Mono,monospace;
+  letter-spacing:.2em;
+}
+
+.modal-box h2{
+  margin:20px 0 25px;
+  font:600 clamp(32px,5vw,55px) "Space Grotesk";
+  letter-spacing:-.05em;
+}
+
+.modal-box p{
+  color:#a2adb5;
+  font-size:15px;
+  line-height:2;
+  white-space:pre-line;
+}
+
+.next-btn{
+  margin-top:35px;
+  padding:13px 20px;
+  border:1px solid rgba(101,231,255,.25);
+  color:var(--cyan);
+  background:transparent;
+  font:10px DM Mono,monospace;
+  letter-spacing:.15em;
+}
+
+/* ---------- FOOTER ---------- */
+
+footer{
+  padding:40px 6%;
+  border-top:1px solid var(--line);
+  display:flex;
+  justify-content:space-between;
+  color:#59636b;
+  font:9px DM Mono,monospace;
+  letter-spacing:.12em;
+}
+
+/* ---------- REVEAL ---------- */
+
+.reveal{
+  opacity:0;
+  transform:translateY(35px);
+  transition:opacity .8s ease,transform .8s ease;
+}
+
+.reveal.show{
+  opacity:1;
+  transform:none;
+}
+
+/* ---------- MOBILE ---------- */
+
+@media(max-width:850px){
+
+  section{padding:95px 5%}
+
+  .nav{
+    padding:15px 5%;
+  }
+
+  .status{display:none}
+
+  .hero{
+    min-height:100svh;
+  }
+
+  .hero-layout{
+    grid-template-columns:1fr;
+    gap:50px;
+  }
+
+  .hero h2{
+    font-size:clamp(65px,19vw,120px);
+  }
+
+  .hero-side{
+    border-left:0;
+    border-top:1px solid var(--line);
+    padding:25px 0 0;
+  }
+
+  .big-number{
+    font-size:80px;
+  }
+
+  .stats{
+    grid-template-columns:1fr 1fr;
+  }
+
+  .stat:nth-child(2){
+    border-right:0;
+  }
+
+  .stat:nth-child(-n+2){
+    border-bottom:1px solid var(--line);
+  }
+
+  .chapter-head{
+    flex-direction:column;
+    align-items:flex-start;
+  }
+
+  .progress-wrap{
+    width:100%;
+  }
+
+  .chapter-grid{
+    grid-template-columns:1fr 1fr;
+  }
+
+  .personality-grid{
+    grid-template-columns:1fr;
+    gap:50px;
+  }
+
+  .mission{
+    grid-template-columns:1fr 1fr;
+  }
+
+  .mission div{
+    border-bottom:1px solid var(--line);
+    border-right:1px solid var(--line);
+  }
+
+  .mission div:nth-child(2n){
+    border-right:0;
+  }
+
+  .mission div:last-child{
+    grid-column:1/-1;
+    border:0;
+  }
+
+  footer{
+    flex-direction:column;
+    gap:12px;
+  }
+}
+
+@media(max-width:520px){
+
+  .intro-content h1{
+    font-size:55px;
+  }
+
+  .compass{
+    width:290px;
+    height:290px;
+  }
+
+  .chapter-grid{
+    grid-template-columns:1fr;
+  }
+
+  .chapter-card{
+    min-height:180px;
+  }
+
+  .chapter-card h3{
+    margin-top:40px;
+  }
+
+  .timeline-item{
+    padding-left:45px;
+  }
+
+  .timeline-line{
+    left:8px;
+  }
+
+  .timeline-dot{
+    left:0;
+  }
+
+  .map{
+    min-height:330px;
+  }
+
+  .map-point span{
+    font-size:7px;
+  }
+
+  .mission{
+    grid-template-columns:1fr;
+  }
+
+  .mission div,
+  .mission div:nth-child(2n){
+    grid-column:auto;
+    border-right:0;
+  }
+
+  .mission div:last-child{
+    grid-column:auto;
+  }
+
+  .final h2{
+    font-size:18vw;
+  }
+}
+</style>
+</head>
+
+<body class="locked">
+
+<!-- ================= INTRO ================= -->
+
+<div id="intro">
+  <div class="intro-grid"></div>
+  <div class="compass"></div>
+
+  <div class="intro-content">
+    <div class="eyebrow">CLASSIFIED BIRTHDAY EXPEDITION / 2026</div>
+
+    <h1>
+      Mission
+      <span>Thirty Three</span>
+    </h1>
+
+    <p class="intro-sub">
+      This isn't another birthday card.
+      It's a record of the journey, the people, the risks,
+      the wins, the chaos — and the adventure still waiting ahead.
+    </p>
+
+    <button class="begin-btn" id="beginBtn">
+      Begin The Journey
+      <span>→</span>
+    </button>
+  </div>
+</div>
+
+<canvas id="particles"></canvas>
+
+<!-- ================= NAV ================= -->
+
+<nav class="nav">
+  <div class="brand">EXPEDITION <span>33</span></div>
+
+  <div class="nav-right">
+    <div class="status">
+      <i></i> MISSION ACTIVE
+    </div>
+    <button class="sound-btn" id="soundBtn">◉</button>
+  </div>
+</nav>
+
+<main>
+
+<!-- ================= HERO ================= -->
+
+<section class="hero">
+  <div class="container hero-layout reveal">
+
+    <div>
+      <div class="eyebrow">THE NEXT CHAPTER</div>
+
+      <h2>
+        33
+        <span class="outline">YEARS</span>
+        <span>ONE</span>
+        <span class="outline">UNFINISHED</span>
+        STORY.
+      </h2>
+
+      <p class="hero-description">
+        Some birthdays deserve a cake.
+        Some deserve a celebration.
+        And some deserve a full expedition through everything
+        that made the person standing here today.
+      </p>
+    </div>
+
+    <div class="hero-side">
+      <div class="big-number">33</div>
+      <small>LEVEL UNLOCKED / AUGUST 2026</small>
+    </div>
+
+  </div>
+</section>
+
+<!-- ================= STATS ================= -->
+
+<section style="padding-top:0">
+  <div class="container">
+    <div class="stats reveal">
+
+      <div class="stat">
+        <div class="stat-value counter" data-target="33">0</div>
+        <div class="stat-label">Years of Story</div>
+      </div>
+
+      <div class="stat">
+        <div class="stat-value counter" data-target="29">0</div>
+        <div class="stat-label">Chapters Waiting</div>
+      </div>
+
+      <!-- CHANGE THESE NUMBERS -->
+      <div class="stat">
+        <div class="stat-value counter" data-target="1000">0</div>
+        <div class="stat-label">People Led</div>
+      </div>
+
+      <div class="stat">
+        <div class="stat-value counter" data-target="1000000000000">0</div>
+        <div class="stat-label">Major Missions</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ================= JOURNEY ================= -->
+
+<section id="journey">
+  <div class="container">
+
+    <div class="section-label reveal">01 / THE BUILD</div>
+
+    <h2 class="section-title reveal">
+      From <em> 20th February 2026</em><br>
+      to what's next.
+    </h2>
+
+    <div class="timeline-wrap">
+
+      <div class="timeline-line"></div>
+
+      <!-- FEB 2025 -->
+      <div class="timeline-item reveal">
+        <div class="timeline-dot"></div>
+
+        <div class="timeline-date">
+          FEBRUARY 2026 / ORIGIN
+        </div>
+
+        <div class="timeline-card">
+          <h3>The First Move</h3>
+          <p>
+            A startup wasn't just another project.
+            It was the beginning of a completely new chapter —
+            building, leading, making decisions and learning
+            what happens when an idea becomes real.
+          </p>
+
+          <div class="logo-row">
+            <!-- Replace these with actual logos -->
+            <div class="logo-box">
+  <img src="images/Naxiam (1).png" alt="Company">
+</div>
+             <div class="logo-box">
+  <img src="images/ebay.png" alt="Company">
+</div>
+  <div class="logo-box">
+  <img src="images/tradeuae logo.jpeg" alt="Company">
+</div>
+            
+          </div>
+        </div>
+      </div>
+
+      <!-- GROWTH -->
+      <div class="timeline-item reveal">
+        <div class="timeline-dot"></div>
+
+        <div class="timeline-date">
+          2025 / EXPANSION
+        </div>
+
+        <div class="timeline-card">
+          <h3>The People Phase</h3>
+          <p>
+            The mission grew beyond ideas.
+            More people. More conversations.
+            More responsibilities. More decisions.
+            Leadership became less about a title and more
+            about being the person others could rely on.
+          </p>
+
+          
+        </div>
+      </div>
+
+      <!-- NOW -->
+      <div class="timeline-item reveal">
+        <div class="timeline-dot"></div>
+
+        <div class="timeline-date">
+          2026 / CURRENT STATUS
+        </div>
+
+        <div class="timeline-card">
+          <h3>Still Building.</h3>
+          <p>
+            The most interesting part?
+            The story is still being written.
+            What exists today is only evidence of what happens
+            when ambition meets consistency.
+          </p>
+
+          
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ================= CHAPTERS ================= -->
+
+<section id="chapters">
+  <div class="container">
+
+    <div class="chapter-head">
+
+      <div>
+        <div class="section-label reveal">02 / THE ARCHIVE</div>
+        <h2 class="section-title reveal">
+          29 things<br>
+          <em>worth knowing.</em>
+        </h2>
+      </div>
+
+      <div class="progress-wrap reveal">
+        <div class="progress-text">
+          <span>MISSION PROGRESS</span>
+          <span id="progressText">0 / 29</span>
+        </div>
+        <div class="progress">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="chapter-grid" id="chapterGrid"></div>
+
+  </div>
+</section>
+
+<!-- ================= PERSONALITY ================= -->
+
+<section id="personality">
+
+  <div class="container">
+
+    <div class="section-label reveal">03 / HUMAN DATA</div>
+
+    <h2 class="section-title reveal">
+      The person<br>
+      <em>behind the mission.</em>
+    </h2>
+
+    <div class="personality-grid">
+
+      <div class="personality-copy reveal">
+        <p>
+          Professional achievements tell only one side of the story.
+          The other side is personality — the curiosity, the ambition,
+          the ability to handle chaos, the love for adventure and
+          that slightly dangerous habit of saying,
+          <strong style="color:white">“Let's see what happens.”</strong>
+        </p>
+
+        <br>
+
+        <p>
+          33 years isn't a number that closes a chapter.
+          It's proof that there are already 33 years of experience
+          behind the person — and an entire unexplored map ahead.
+        </p>
+      </div>
+
+      <div class="traits reveal">
+
+        <div>
+          <div class="trait-head">
+            <span>ADVENTURE</span><span>97%</span>
+          </div>
+          <div class="trait-track">
+            <div class="trait-fill" style="--width:97%"></div>
+          </div>
+        </div>
+
+        <div>
+          <div class="trait-head">
+            <span>LEADERSHIP</span><span>94%</span>
+          </div>
+          <div class="trait-track">
+            <div class="trait-fill" style="--width:94%"></div>
+          </div>
+        </div>
+
+        <div>
+          <div class="trait-head">
+            <span>AMBITION</span><span>99%</span>
+          </div>
+          <div class="trait-track">
+            <div class="trait-fill" style="--width:99%"></div>
+          </div>
+        </div>
+
+        <div>
+          <div class="trait-head">
+            <span>CHAOS MANAGEMENT</span><span>96%</span>
+          </div>
+          <div class="trait-track">
+            <div class="trait-fill" style="--width:96%"></div>
+          </div>
+        </div>
+
+        <div>
+          <div class="trait-head">
+            <span>RISK TOLERANCE</span><span>91%</span>
+          </div>
+          <div class="trait-track">
+            <div class="trait-fill" style="--width:91%"></div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
+<!-- ================= MAP ================= -->
+
+<section>
+  <div class="container">
+
+    <div class="section-label reveal">04 / THE UNFINISHED MAP</div>
+
+    <h2 class="section-title reveal">
+      There is still<br>
+      <em>so much ahead.</em>
+    </h2>
+
+    <div class="map reveal">
+
+      <div class="route"></div>
+
+      <div class="map-point p1">
+        <span>FEB 2025</span>
+      </div>
+
+      <div class="map-point p2">
+        <span>BUILD</span>
+      </div>
+
+      <div class="map-point p3">
+        <span>LEAD</span>
+      </div>
+
+      <div class="map-point p4">
+        <span>EXPAND</span>
+      </div>
+
+      <div class="map-point p5">
+        <span>NEXT?</span>
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
+<!-- ================= FINAL ================= -->
+
+<section class="final" id="final">
+
+  <div class="final-content reveal">
+
+    <div class="final-kicker">
+      29 / 29 CHAPTERS COMPLETED
+    </div>
+
+    <h2>
+      Mission<br>
+      <span>Complete.</span>
+    </h2>
+
+    <p class="final-message">
+      Hamry pass apko wish karne ya gift karne ky liye kuch bohat special tw nai hy but abhi ky liye is sy guzara  kar lein .Agar agy sab chalta raha me rahi tw paka naxiam apko bohat kuch dy ga i'll make sure .Abhi ky liye we decided ky 1st august sy 28th tak roz apky liye koi baat likhein gy koi dua ya koi baat ap sy puch kar taky apko yaad rahy .So yahi wo task tha jis ky liye mene apko itne din tang kia roz pucha or email github account bhi manga .So aj 1st august hy or ap sy aj mang nai saky apki koi baat so we decided  ky aj hum apko dua dien gy .Aj ap thora sust thy is liye Allah tala apko Hidayat dy ,kamyabian ata kare ,mayoosi me bhi Allah apko apni raah dikhae ,Wo apko kabhi khud sy dur na kary .Ameen!!
+      Aj second August hy bohat mushkil sy hi ap ny kuch bataya hy , or baqol apky "yh safar zindagi ka shaid start hua hy ab lagta hy zindagi ka kuch maqsad nazar ana shuru hua hy .khud ky liye efforts ka dil karta hy ." Please ye maqsad na khatam hone dijye ga na rukiye ga aik zindagi hy khud ka sath dein or jee lein bhar pur tareeqe sy khud ky liye.
+      Aj 3rd august hy or ap sy is tarha kuch puchna bohat mushkil kaam hy ......aik naxiam kia kia karwae ga mujh sy ......Or ghum kar ap phir mera zikar karty hein jo ky nai hy kahi bhi so apny bataya ky  "ap ki waja sy itna change ,or is py focus karna or aik new pehchan banana. "Allah ne aap ke liye jo naya raasta khola hai, asal credit sab se pehle Allah ka hai.  Aur uske baad aap khud — aapka decision, aapka focus, aapki mehnat aur apne liye ek nayi pehchan banane ka courage. Abhi to bas shuruaat hai, InshaAllah aage bohat kuch aur bohat behtar aapka intezar kar raha hai.
+      Dua hai Allah aapke is naye safar mein barkat de, aapko istiqamat aur himmat de, aur aapki mehnat ko aisi kamyabi mein badle jiska aapne kabhi socha bhi na ho.We pary the same jo hazrat Salman (RA) ny apne liye ki thi , Allah tala apko aesi saltanat aesi badshaht dy jo ap sy pehly kisi ko naseeb na hui ho.Ameen. ✨ 4th august 
+Umm new idea unlock new experiences or es diverse field market me new dhondna or aaj k dor me stand lyna yh waqie kch new hai
+5th august 
+Yh kah skta k mukhlis logo ka milna aik waqie bht bari achievment rhi yh haqeqat hai
+Aik chez or Mje sabr aya kaie logo ki baato ko r behavior ko mene ignore krna sekha.
+Khud p working ki jsme apny support kia k harr aik ko jwab dyna bhe zrori nhi hota.
+6th august 
+Ab bshhh new areas open krny hain business kyyy
+7th august 
+Aj you were tired mene pucha tha ap ny nai bataya par chunky AP thaky hue thy tw mene insisit nai Kia .
+8th august 
+Aj AP ny mujhy solution dia or is Sab me task complete karna bhul gae tw me batati hu AP aik positive , sensitive and sensible insan Hein .AP ny solution bhi dia or ye make sure kia ky me awkward na hu mujhy bura na lagy ya me Baad me na sochu usko AP ny har dafa aesa kia Hy , isky liye Thank you .or aik or cheez aj apko store ki news Mili tw ap thora  sa relief feel kar rahy thy or yes lekin bohat passionate thy har idea ko ly kar execute Karne ky liye .
+9th august 
+ Aik yh k employee ko zra distance p rkhna or agla apki izat esliy kry k wo kursi ki izat hai is something else pr on the other hand jb ap wha nhi bethy or us k baad employee apko value kry tw yh bht bari baat hoti hai or mene yh baat pechle aik saal me achieve ki. Phle ma baat nhi krny dyta tha ksi ko khud sy or phr aik time aya i worked for people well being unki khatir fight krna aik aik chez dosry ka soch kr krna
+ Yh chez waqie aik change tha
+I dnt knw k mene jw baat kahe esko smjha paya ya nhi pr yh aik acha feel tha
+10th august 
+Aj apko kaha tha par AP aj bohat off thy so dubara nai kaha mene .
+11th august 
+Aj apko 3 dafa message Kiya or call par bhi kaha phir bhul gae ......
+12th august 
+Kaha tha par nai Kia ab me nahi kahu gi bus
+13th august subha 5:30 Am par
+Mene apko btaya tha mei aik achievement me k ma let go krna shuru kia hai
+Or kal sy aik chez r working chl rhi hai
+Wo yh k kch bara hasil krna hai or us k liy mje strategize krna hai
+Aj 16th august Hy or aj ad chal tha Saudia ki location par and 6 orders received, jis me sy 2 confirmed Hein or 4 pending Hein so this is your achievement .Ma Shaa Allah 
+And eBay ka bhi aik order Aya tha aj .
+17th august ko ebay ka half payout Nikal gaya he achievement Hy apki 
+28th august ,2026 
+
+
+      Happy Birthday Sir Mr CEO (In shaa Allah officially bhi bohat jald ho ga ye ).WE (NAXIAM)  pray Allah tala ap par apni rehmat ka saya rakhy hamesha, bohat khushiyan dy bohat achy naseeb kary apky, Allah tala ghaib ky asy darwazon sy apka rizq khole jin ka qainat me koi hisab na ho ,Allah apko wo sab ata kary jo apky haq me behtareen hy ,or apka daman hamesha afiayt sy bhara rahy . Ammeen Sumameen
+      33 years. Countless experiences. People led.
+      Problems solved. Risks taken. Memories made.
+      May Allah bless you with a life filled with happiness, peace, good health, and endless barakah. May He protect you from every hardship, guide you toward what is best for you, and fulfill the beautiful wishes of your heart.
+
+May Allah grant you success in everything you do, surround you with sincere and loving people, and keep your heart content and close to Him. May every coming year bring you closer to your dreams and bring more peace, prosperity, and beautiful moments into your life.
+
+May Allah bless your age, your rizq, your future, and every step you take. Ameen. ✨
+
+Have a truly blessed birthday and forever ! 
+      <br><br>
+      But this isn't the ending.
+      <strong>It's the moment the next expedition begins.Revive the track for your self.</strong>
+    </p>
+
+    <div class="mission">
+
+      <div>
+        <small>AGE</small>
+        <b>33</b>
+      </div>
+
+      <div>
+        <small>STATUS</small>
+        <b>ACTIVE</b>
+      </div>
+
+      <div>
+        <small>MAP</small>
+        <b>UNFINISHED</b>
+      </div>
+
+      <div>
+        <small>DESTINATION</small>
+        <b>UNKNOWN</b>
+      </div>
+
+      <div>
+        <small>LIMIT</small>
+        <b>NONE</b>
+      </div>
+
+    </div>
+
+    <div class="final-birthday">
+      HAPPY 33RD BIRTHDAY · MISSION 33 ACTIVATED 🚀
+    </div>
+
+  </div>
+
+</section>
+
+</main>
+
+<footer>
+  <span>EXPEDITION 33 / CLASSIFIED BIRTHDAY ARCHIVE</span>
+  <span>KEEP BUILDING · KEEP EXPLORING · DON'T MAKE IT ORDINARY</span>
+</footer>
+
+
+<!-- ================= MODAL ================= -->
+
+<div class="modal" id="modal">
+
+  <div class="modal-box">
+
+    <button class="modal-close" id="modalClose">×</button>
+
+    <div class="modal-number" id="modalNumber"></div>
+
+    <h2 id="modalTitle"></h2>
+
+    <p id="modalText"></p>
+
+    <button class="next-btn" id="nextBtn">
+      MARK CHAPTER COMPLETE →
+    </button>
+
+  </div>
+
+</div>
+
+
+<script>
+
+/* ==========================================================
+   29 CHAPTERS
+   ========================================================== */
+
+const chapters = [
+
+{
+ title:"THE DAY IT ALL BEGAN",
+ text:`33 years ago, the world got one more person.
+
+But somewhere along the way, that person decided he wasn't going to live an ordinary story.
+
+And honestly?
+
+
+
+Happy Birthday to someone who somehow manages to make life look like a combination of a business plan, an adventure movie, and a completely unnecessary amount of chaos.`
+},
+
+{
+ title:"LEVEL 33 UNLOCKED",
+ text:`LEVEL 33: UNLOCKED.
+
+New experience: +33 years.
+New wisdom: +∞.
+New responsibilities: unfortunately, also +∞.
+New adventures: loading...
+
+But don't worry.
+
+You still have plenty of time to make questionable decisions with confidence.`
+},
+
+{
+ title:"FEBRUARY 2026",
+ text:`Somewhere in February 2025, another chapter started.
+
+A startup.
+
+A vision.
+
+A lot of people to handle.
+
+A lot of decisions to make.
+
+And probably a lot of moments where you wondered:
+
+“Why did I decide to do this?”
+
+Yet here you are.
+
+Still building.
+Still leading.
+Still moving.
+
+That's the part worth celebrating.`
+},
+
+{
+ title:"THE BUILDER",
+ text:`Some people wait for opportunities.
+
+Some people look for opportunities.
+
+And then there are people who say:
+
+“Fine. I'll build my own.”
+
+You belong to the third category.
+
+And that's one of the best things.`
+},
+
+{
+ title:"THE PEOPLE BEHIND THE NUMBERS",
+ text:`Behind every number on this website is a person.
+
+Someone you guided.
+Someone you managed.
+Someone who trusted your decisions.
+Someone who learned something from you.
+
+Leadership isn't about having people beneath you.
+
+It's about having people who become better because they worked with you.`
+},
+
+{
+ title:"THE CONTROL ROOM",
+ text:`If your life had a control room, it would probably contain:
+
+50 open tabs.
+17 unfinished plans.
+8 backup plans.
+3 unexpected problems.
+1 person pretending everything is completely under control.
+
+You.
+
+And somehow...
+
+it works.`
+},
+
+{
+ title:"NOT JUST A JOB",
+ text:`What started in February 2025 wasn't simply another professional chapter.
+
+It became a test of patience.
+Decision-making.
+Leadership.
+Consistency.
+Risk.
+
+And the ability to keep going when the easy option would have been to stop.
+
+And you kept going.`
+},
+
+{
+ title:"THE ADVENTURER",
+ text:`You have the kind of personality that makes “let's do something crazy” sound like a perfectly reasonable plan.
+
+Routine?
+
+Necessary sometimes.
+
+Adventure?
+
+Much better.
+
+Because life was never meant to be just:
+
+Work → Sleep → Repeat.
+
+There should always be a little “what if?” somewhere in the story.`
+},
+
+{
+ title:"THE UNEXPECTED PLOT TWIST",
+ text:`Every great adventure needs plot twists.
+
+Some were planned.
+Some weren't.
+Some probably arrived with absolutely terrible timing.
+
+But here's the thing:
+
+You survived all of them.
+
+And apparently got stronger too.`
+},
+
+{
+ title:"THE LEADER",
+ text:`A title can make someone a manager.
+
+A designation can make someone a boss.
+
+But leadership?
+
+That's earned.
+
+Through pressure.
+Through responsibility.
+Through difficult decisions.
+Through people trusting you when the answer isn't obvious.
+
+And that's what makes your journey different.`
+},
+
+{
+ title:"THE PEOPLE YOU'VE HANDLED",
+ text:`Let's take a moment to appreciate the real achievement:
+
+You have successfully handled people.
+
+Different personalities.
+Different expectations.
+Different problems.
+Different levels of chaos.
+
+And somehow you are still here.
+
+Honestly, that deserves its own award.`
+},
+
+{
+ title:"THE NUMBERS",
+ text:`The numbers on this page aren't just numbers.
+
+They're proof.
+
+Proof of the number of people you've led.
+The projects you've touched.
+The opportunities you've created.
+The problems you've solved.
+
+Numbers tell the story.
+
+People give it meaning.`
+},
+
+{
+ title:"THE RISK TAKER",
+ text:`Starting something is easy to talk about.
+
+Actually starting?
+
+That's different.
+
+Because every beginning carries uncertainty.
+
+You don't know exactly where it will go.
+You don't know who will stay.
+You don't know what will fail.
+
+But you start anyway.
+
+That's courage.`
+},
+
+{
+ title:"THE WORK BEHIND THE WORK",
+ text:`People usually see the result.
+
+They don't see the late decisions.
+The planning.
+The pressure.
+The conversations.
+The problems.
+The things that didn't work.
+The things you had to fix quietly.
+
+So here's something that deserves to be said:
+
+I'm proud of the work people don't see.`
+},
+
+{
+ title:"YOUR PERSONALITY",
+ text:`You are not exactly the kind of person who can simply exist quietly in the background.
+
+You have opinions.
+You have ideas.
+You have plans.
+You have ambitions.
+
+And occasionally...
+
+you have absolutely no idea how you're going to pull something off.
+
+But somehow you still say:
+
+“We'll figure it out.”
+
+And somehow...
+
+you do.`
+},
+
+{
+ title:"THE ADVENTURE ISN'T OVER",
+ text:`33 isn't the finish line.
+
+It's barely another checkpoint.
+
+There are still places you've never seen.
+Things you've never built.
+People you've never met.
+Risks you've never taken.
+Stories you've never told.
+
+So don't slow down now.
+
+The map is still mostly unexplored.`
+},
+
+{
+ title:"A LITTLE REMINDER",
+ text:`Don't become so focused on building the future that you forget to enjoy the present.
+
+Celebrate the small wins.
+Take the trip.
+Say yes to the adventure.
+Laugh at the ridiculous moments.
+Take pictures.
+Make memories.
+
+Because one day, these moments will be the stories you'll remember most.`
+},
+
+{
+ title:"THE PEOPLE WHO BELIEVE IN YOU",
+ text:`Every ambitious person needs people who believe in them.
+
+Especially during the moments when the plan isn't working yet.
+
+So wherever this journey takes you next, remember:
+
+There are people who genuinely want to see you win.
+
+Not because of your title.
+Not because of your work.
+
+But because of you.`
+},
+
+{
+ title:"THE UNFINISHED MAP",
+ text:`Imagine your entire life as a giant map.
+
+The places you've been? Marked.
+The battles you've survived? Marked.
+The people you've met? Marked.
+
+But look carefully...
+
+There are still huge blank spaces.
+
+Those are the adventures waiting for you.
+
+Don't stop exploring.`
+},
+
+{
+ title:"THE NEXT BIG THING",
+ text:`Maybe the next chapter is another startup.
+
+Maybe it's a bigger team.
+Maybe it's another crazy idea.
+Maybe it's something completely unexpected.
+
+Whatever it is...
+
+I hope it scares you a little.
+
+Because the best adventures usually do.`
+},
+
+{
+ title:"THE PEOPLE WHO KNOW YOU",
+ text:`Some people know your professional side.
+
+Some know your adventurous side.
+Some know your serious side.
+Some know the completely ridiculous side.
+
+And the lucky ones?
+
+They've seen all of them.
+
+That's what makes a person memorable.
+
+Not perfection.
+
+Personality.`
+},
+
+{
+ title:"33 YEARS OF STORY",
+ text:`33 years.
+
+That's 33 years of decisions.
+Mistakes.
+Wins.
+Losses.
+Friendships.
+Experiences.
+Lessons.
+Risks.
+Laughs.
+
+And countless moments that somehow brought you here.
+
+If your life were a book...
+
+this wouldn't be the final chapter.
+
+It would be the moment where the story gets interesting.`
+},
+
+{
+ title:"YOUR BIGGEST COMPETITOR",
+ text:`It's probably not another founder.
+
+Not another company.
+Not another person.
+
+It's yesterday's version of you.
+
+And honestly?
+
+Keep competing with that guy.
+
+Because if today's version of you is better than yesterday's...
+
+you're winning.`
+},
+
+{
+ title:"THE “WHAT'S NEXT?” QUESTION",
+ text:`Most people ask:
+
+“What have you achieved?”
+
+I'd rather ask:
+
+“What's next?”
+
+Because somehow I don't think you're done.
+
+Not even close.
+
+There are bigger goals.
+Bigger ideas.
+Bigger adventures.
+
+And probably at least one completely insane plan waiting somewhere in your head.`
+},
+
+{
+ title:"THE CHAOS THEORY",
+ text:`If there is ever a situation where everything goes wrong simultaneously...
+
+I have a feeling you'll somehow look at it and say:
+
+“Okay. Let's solve this.”
+
+And that's one of the things.
+
+Not that everything goes perfectly.
+
+But that you keep moving when it doesn't.`
+},
+
+{
+ title:"THE UNSEEN IMPACT",
+ text:`You may not realize it every day, but leadership leaves fingerprints.
+
+On businesses.
+On teams.
+On careers.
+On confidence.
+On people.
+
+Sometimes one conversation can change someone's direction.
+
+One opportunity can change someone's life.
+
+Never underestimate the impact you can have.`
+},
+
+{
+ title:"33 ≠ OLD",
+ text:`Let's officially clarify something:
+
+33 is NOT old.
+
+33 is basically:
+
+Old enough to know better.
+
+Young enough to ignore it.
+
+Experienced enough to lead.
+
+Crazy enough to still go on adventures.
+
+So you're good.`
+},
+
+{
+ title:"THE NEXT EXPEDITION",
+ text:`The previous chapter was about building.
+
+The next one?
+
+Expansion.
+
+More people.
+More places.
+More ideas.
+More risks.
+More wins.
+More stories.
+
+And hopefully fewer “I should have thought about this first” moments.
+
+Although...
+
+I wouldn't bet on that last one.`
+},
+
+{
+ title:"BEFORE THE FINAL DOOR",
+ text:`You've built something.
+You've led people.
+You've taken risks.
+You've survived difficult chapters.
+You've created memories.
+You've kept moving.
+
+And now...
+
+there's one final door.
+
+Behind it isn't another message.
+
+It's a reminder.
+
+Of who you are.
+Of what you've done.
+And of everything still waiting for you.
+
+Ready?`
+}
+
+];
+
+
+/* ==========================================================
+   BUILD CHAPTER CARDS
+   ========================================================== */
+
+const grid = document.getElementById("chapterGrid");
+
+chapters.forEach((chapter,index)=>{
+
+  const card = document.createElement("div");
+
+  card.className = "chapter-card reveal";
+
+  card.innerHTML = `
+    <div class="chapter-number">
+      CHAPTER ${String(index+1).padStart(2,"0")}
+    </div>
+
+    <div class="lock">○</div>
+
+    <h3>${chapter.title}</h3>
+
+    <p>CLICK TO UNLOCK</p>
+  `;
+
+  card.addEventListener("click",()=>openChapter(index,card));
+
+  grid.appendChild(card);
+});
+
+
+/* ==========================================================
+   CHAPTER MODAL
+   ========================================================== */
+
+const modal = document.getElementById("modal");
+const modalTitle = document.getElementById("modalTitle");
+const modalText = document.getElementById("modalText");
+const modalNumber = document.getElementById("modalNumber");
+const modalClose = document.getElementById("modalClose");
+const nextBtn = document.getElementById("nextBtn");
+
+let currentChapter = 0;
+let completed = new Set();
+
+function openChapter(index,card){
+
+  currentChapter = index;
+
+  modalNumber.textContent =
+    `CHAPTER ${String(index+1).padStart(2,"0")} / 29`;
+
+  modalTitle.textContent = chapters[index].title;
+  modalText.textContent = chapters[index].text;
+
+  modal.classList.add("open");
+
+  document.body.style.overflow = "hidden";
+
+  nextBtn.textContent =
+    completed.has(index)
+    ? "CHAPTER COMPLETE ✓"
+    : "MARK CHAPTER COMPLETE →";
+
+  nextBtn.onclick = ()=>{
+
+    completed.add(index);
+
+    card.classList.add("read");
+    card.querySelector(".lock").textContent = "✓";
+
+    updateProgress();
+
+    if(index < chapters.length - 1){
+
+      openChapter(index + 1,
+        document.querySelectorAll(".chapter-card")[index + 1]
+      );
+
+    }else{
+
+      closeModal();
+
+      setTimeout(()=>{
+        document.getElementById("final")
+          .scrollIntoView({behavior:"smooth"});
+      },400);
+
+    }
+  };
+}
+
+function closeModal(){
+  modal.classList.remove("open");
+  document.body.style.overflow = "";
+}
+
+modalClose.addEventListener("click",closeModal);
+
+modal.addEventListener("click",(e)=>{
+  if(e.target === modal) closeModal();
+});
+
+document.addEventListener("keydown",(e)=>{
+  if(e.key === "Escape") closeModal();
+});
+
+
+/* ==========================================================
+   PROGRESS
+   ========================================================== */
+
+function updateProgress(){
+
+  const total = chapters.length;
+  const done = completed.size;
+
+  document.getElementById("progressText").textContent =
+    `${done} / ${total}`;
+
+  document.getElementById("progressFill").style.width =
+    `${(done/total)*100}%`;
+}
+
+
+/* ==========================================================
+   INTRO
+   ========================================================== */
+
+document.getElementById("beginBtn")
+.addEventListener("click",()=>{
+
+  document.getElementById("intro").classList.add("hide");
+
+  document.body.classList.remove("locked");
+
+  setTimeout(()=>{
+    document.querySelector(".hero").scrollIntoView({
+      behavior:"smooth"
+    });
+  },500);
+
+});
+
+
+/* ==========================================================
+   SCROLL REVEALS
+   ========================================================== */
+
+const observer = new IntersectionObserver(
+(entries)=>{
+  entries.forEach(entry=>{
+    if(entry.isIntersecting){
+      entry.target.classList.add("show");
+    }
+  });
+},
+{threshold:.12}
+);
+
+document.querySelectorAll(".reveal")
+.forEach(el=>observer.observe(el));
+
+
+/* ==========================================================
+   COUNTERS
+   ========================================================== */
+
+const counterObserver = new IntersectionObserver(
+(entries)=>{
+  entries.forEach(entry=>{
+
+    if(!entry.isIntersecting) return;
+
+    const el = entry.target;
+    const target = Number(el.dataset.target);
+
+    let start = 0;
+    const duration = 1300;
+    const startTime = performance.now();
+
+    function animate(time){
+
+      const progress =
+        Math.min((time-startTime)/duration,1);
+
+      const eased = 1-Math.pow(1-progress,3);
+
+      el.textContent =
+        Math.floor(target*eased);
+
+      if(progress < 1){
+        requestAnimationFrame(animate);
+      }
+    }
+
+    requestAnimationFrame(animate);
+
+    counterObserver.unobserve(el);
+  });
+},
+{threshold:.6}
+);
+
+document.querySelectorAll(".counter")
+.forEach(el=>counterObserver.observe(el));
+
+
+/* ==========================================================
+   PARTICLES
+   ========================================================== */
+
+const canvas = document.getElementById("particles");
+const ctx = canvas.getContext("2d");
+
+let particles = [];
+
+function resizeCanvas(){
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+
+window.addEventListener("resize",resizeCanvas);
+resizeCanvas();
+
+function createParticles(){
+
+  particles = [];
+
+  const amount =
+    Math.min(110,Math.floor(window.innerWidth/10));
+
+  for(let i=0;i<amount;i++){
+
+    particles.push({
+      x:Math.random()*canvas.width,
+      y:Math.random()*canvas.height,
+      r:Math.random()*1.4+.2,
+      vx:(Math.random()-.5)*.18,
+      vy:(Math.random()-.5)*.18,
+      alpha:Math.random()*.55+.1
+    });
+
+  }
+}
+
+createParticles();
+
+function animateParticles(){
+
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  particles.forEach(p=>{
+
+    p.x += p.vx;
+    p.y += p.vy;
+
+    if(p.x<0)p.x=canvas.width;
+    if(p.x>canvas.width)p.x=0;
+
+    if(p.y<0)p.y=canvas.height;
+    if(p.y>canvas.height)p.y=0;
+
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx.fillStyle =
+      `rgba(101,231,255,${p.alpha})`;
+
+    ctx.fill();
+  });
+
+  requestAnimationFrame(animateParticles);
+}
+
+animateParticles();
+
+
+/* ==========================================================
+   SIMPLE AMBIENT SOUND TOGGLE
+   ========================================================== */
+
+let audioContext = null;
+let oscillator = null;
+let gain = null;
+let soundOn = false;
+
+document.getElementById("soundBtn")
+.addEventListener("click",()=>{
+
+  if(!audioContext){
+
+    audioContext =
+      new (window.AudioContext ||
+      window.webkitAudioContext)();
+
+    oscillator =
+      audioContext.createOscillator();
+
+    gain =
+      audioContext.createGain();
+
+    oscillator.type = "sine";
+    oscillator.frequency.value = 55;
+
+    gain.gain.value = 0;
+
+    oscillator.connect(gain);
+    gain.connect(audioContext.destination);
+
+    oscillator.start();
+  }
+
+  soundOn = !soundOn;
+
+  gain.gain.setTargetAtTime(
+    soundOn ? .018 : 0,
+    audioContext.currentTime,
+    .5
+  );
+
+  document.getElementById("soundBtn").textContent =
+    soundOn ? "◉" : "○";
+
+});
+
+
+/* ==========================================================
+   EASTER EGG — PRESS 3
+   ========================================================== */
+
+let secret = "";
+
+document.addEventListener("keydown",(e)=>{
+
+  secret += e.key.toLowerCase();
+
+  if(secret.length > 10){
+    secret = secret.slice(-10);
+  }
+
+  if(secret.includes("adventure")){
+
+    document.body.style.transition = "filter 1s";
+    document.body.style.filter = "brightness(1.25)";
+
+    setTimeout(()=>{
+      document.body.style.filter = "";
+    },1000);
+
+    secret = "";
+  }
+});
+
+</script>
+
+</body>
+</html>
